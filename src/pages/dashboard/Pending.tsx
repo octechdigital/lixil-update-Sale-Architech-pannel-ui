@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import Header from "../../components/header/Header";
 import ViewButtonRenderer from "../../components/customElements/Buttons";

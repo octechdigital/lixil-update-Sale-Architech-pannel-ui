@@ -2,10 +2,12 @@ import { createBrowserRouter } from "react-router";
 import { ROUTES } from "../lib/consts.ts";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout.tsx";
 import Login from "../pages/login/Login.tsx";
-import Pending from "../pages/dashboard/Pending.tsx";
-import Offers from "../pages/dashboard/Approve.tsx";
+// import Pending from "../pages/dashboard/Pending.tsx";
+// import Offers from "../pages/dashboard/Approve.tsx";
 import PrivateRoute from "../helpers/PrivateRoute.tsx";
-import Rejected from "../pages/dashboard/Rejected.tsx";
+// import Rejected from "../pages/dashboard/Rejected.tsx";
+import Sales from "../pages/dashboard/Sales.tsx";
+import Architect from "../pages/dashboard/Architect.tsx";
 
 export const router = createBrowserRouter(
   [
@@ -22,17 +24,27 @@ export const router = createBrowserRouter(
       children: [
         {
           index: true,
-          path: ROUTES.PENDING,
-          element: <Pending />,
+          path: ROUTES.SALES,
+          element: <Sales />,
         },
         {
-          path: ROUTES.APPROVED,
-          element: <Offers />,
+          index: true,
+          path: ROUTES.ARCHITECT,
+          element: <Architect />,
         },
-        {
-          path: ROUTES.REJECTED,
-          element: <Rejected />,
-        },
+        // {
+        //   index: true,
+        //   path: ROUTES.PENDING,
+        //   element: <Pending />,
+        // },
+        // {
+        //   path: ROUTES.APPROVED,
+        //   element: <Offers />,
+        // },
+        // {
+        //   path: ROUTES.REJECTED,
+        //   element: <Rejected />,
+        // },
       ],
     },
   ],

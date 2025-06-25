@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import {
@@ -45,20 +46,30 @@ const SideMenu = () => {
 
   const mainMenu: MenuItemProp[] = [
     {
-      title: "Pending",
-      route: ROUTES.PENDING,
-      icon: "pending",
+      title: "Sale",
+      route: ROUTES.SALES,
+      icon: "sales",
     },
     {
-      title: "Approved",
-      route: ROUTES.APPROVED,
-      icon: "approved",
+      title: "Architects",
+      route: ROUTES.ARCHITECT,
+      icon: "architect",
     },
-    {
-      title: "Rejected",
-      route: ROUTES.REJECTED,
-      icon: "rejected",
-    },
+    // {
+    //   title: "Pending",
+    //   route: ROUTES.PENDING,
+    //   icon: "pending",
+    // },
+    // {
+    //   title: "Approved",
+    //   route: ROUTES.APPROVED,
+    //   icon: "approved",
+    // },
+    // {
+    //   title: "Rejected",
+    //   route: ROUTES.REJECTED,
+    //   icon: "rejected",
+    // },
   ];
 
   return (
@@ -109,7 +120,7 @@ const SideMenu = () => {
           >
             <ListItemIcon>
               <SectionAnim
-                type={item.icon as "pending" | "approved" | "rejected"}
+                type={item.icon as "sales" | "architect"}
                 shouldPlay={pathname === item.route}
                 showLastFrame={pathname !== item.route}
               />

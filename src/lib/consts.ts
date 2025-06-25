@@ -3,6 +3,8 @@ export const ROUTES = {
   PENDING: "/dashboard/",
   APPROVED: "/dashboard/approved",
   REJECTED: "/dashboard/rejected",
+  SALES: "/dashboard/SALES",
+  ARCHITECT: "/dashboard/ARCHITECT",
 };
 
 export enum LANGUAGE {
