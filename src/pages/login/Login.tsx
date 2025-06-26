@@ -45,7 +45,7 @@ const Login = () => {
       .then((resp) => {
         showToast("success", "You have been logged in successfully!");
         store.dispatch(setAccessToken(resp.data.token));
-        navigate(ROUTES.PENDING);
+        navigate(ROUTES.SALES);
       })
       .catch((err) => {
         console.log("err", err);
@@ -55,7 +55,7 @@ const Login = () => {
 
   useEffect(() => {
     if (accessToken) {
-      navigate(ROUTES.PENDING);
+      navigate(ROUTES.SALES);
     }
   }, [accessToken, navigate]);
 

@@ -49,7 +49,8 @@ export const router = createBrowserRouter(
     },
   ],
   {
-    basename: import.meta.env.VITE_BASE_URL,
+    basename: "/",
+    // basename: import.meta.env.VITE_BASE_URL,
   }
 );
 export default router;

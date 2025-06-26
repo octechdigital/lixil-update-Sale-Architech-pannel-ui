@@ -1,10 +1,7 @@
 export const ROUTES = {
   HOME_PAGE: "/",
-  PENDING: "/dashboard/",
-  APPROVED: "/dashboard/approved",
-  REJECTED: "/dashboard/rejected",
-  SALES: "/dashboard/SALES",
-  ARCHITECT: "/dashboard/ARCHITECT",
+  SALES: "/update/sales",
+  ARCHITECT: "/update/architect",
 };
 
 export enum LANGUAGE {
