@@ -96,7 +96,7 @@ const Architect = () => {
     <Container maxWidth="md">
       <Box sx={{ py: 8 }}>
         <Typography sx={{ mb: 3, fontWeight:"bold", display:"flex", gap:1}} variant="h4" gutterBottom>
-          <SectionAnim type="architect" shouldPlay={true} loop={true} /> Architect
+          <SectionAnim type="architect" shouldPlay={true} /> Architect
         </Typography>
 
         {/* Mobile Search */}
