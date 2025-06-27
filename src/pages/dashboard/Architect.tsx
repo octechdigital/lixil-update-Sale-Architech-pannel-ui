@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useCallback } from "react";
 import {
   Grid,
   TextField,
@@ -7,359 +8,288 @@ import {
   MenuItem,
   Box,
   Button,
+  CircularProgress,
+  Paper,
 } from "@mui/material";
-import { showToast } from "../../lib/utils"; // Optional: use your toast logic
+import { showToast } from "../../lib/utils";
 import SectionAnim from "../../assets/lottie/SectionAnim";
+import API from "../../api";
+
+type ArchitectFormData = {
+  architectId: string;
+  firstName: string;
+  lastName: string;
+  firmName: string;
+  gender: string;
+  contactNumber: string;
+  email: string;
+  address1: string;
+  address2: string;
+  landmark: string;
+  city: string;
+  state: string;
+  region: string;
+  pincode: string;
+  spocName: string;
+  spocMobile: string;
+  spocManagerName: string;
+  spocManagerMobile: string;
+  regionalManagerMobile: string;
+};
+
+type FormErrors = Partial<Record<keyof ArchitectFormData, string>>;
+
+const defaultFormData: ArchitectFormData = {
+  architectId: "",
+  firstName: "",
+  lastName: "",
+  firmName: "",
+  gender: "",
+  contactNumber: "",
+  email: "",
+  address1: "",
+  address2: "",
+  landmark: "",
+  city: "",
+  state: "",
+  region: "",
+  pincode: "",
+  spocName: "",
+  spocMobile: "",
+  spocManagerName: "",
+  spocManagerMobile: "",
+  regionalManagerMobile: "",
+};
+
+const GENDER_OPTIONS = [
+  { value: "M", label: "Male" },
+  { value: "F", label: "Female" },
+  { value: "O", label: "Other" },
+];
+
+const FORM_FIELDS = [
+  { label: "First Name", key: "firstName", required: true },
+  { label: "Last Name", key: "lastName", required: true },
+  { label: "Firm Name", key: "firmName", fullWidth: true, required: true },
+  { label: "Gender", key: "gender", select: true, options: GENDER_OPTIONS, required: true },
+  { label: "Contact Number", key: "contactNumber", type: "tel", required: true },
+  { label: "Email ID", key: "email", type: "email", fullWidth: true, required: true },
+  { label: "Address - Line 1", key: "address1", fullWidth: true, required: true },
+  { label: "Address - Line 2", key: "address2", fullWidth: true },
+  { label: "Landmark", key: "landmark", fullWidth: true },
+  { label: "City", key: "city", required: true },
+  { label: "State", key: "state", required: true },
+  { label: "Region", key: "region" },
+  { label: "Pincode", key: "pincode", type: "number", required: true },
+  { label: "SPOC Name", key: "spocName" },
+  { label: "SPOC Contact No.", key: "spocMobile", type: "tel" },
+  { label: "SPOC Manager's Name", key: "spocManagerName" },
+  { label: "SPOC Manager's Contact No.", key: "spocManagerMobile", type: "tel" },
+  { label: "Regional Manager Contact No.", key: "regionalManagerMobile", type: "tel", fullWidth: true },
+];
 
 const Architect = () => {
   const [mobile, setMobile] = useState("");
   const [mobileError, setMobileError] = useState("");
-  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState<ArchitectFormData>(defaultFormData);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [isSearching, setIsSearching] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [dataFound, setDataFound] = useState<boolean | null>(null); // null = untouched, true = found, false = not found
+  
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    firmName: "",
-    gender: "",
-    contactNumber: "",
-    email: "",
-    address1: "",
-    address2: "",
-    landmark: "",
-    city: "",
-    state: "",
-    region: "",
-    pincode: "",
-    spocName: "",
-    spocContact: "",
-    spocManagerName: "",
-    spocManagerContact: "",
-    regionalManagerContact: "",
-  });
+  const safeString = (value: unknown): string =>
+    value !== undefined && value !== null ? String(value) : "";
 
-  const mockUserData: Record<string, typeof formData> = {
-    "1111111111": {
-      firstName: "Ravi",
-      lastName: "Verma",
-      firmName: "Design Hub",
-      gender: "M",
-      contactNumber: "9876543210",
-      email: "ravi@designhub.com",
-      address1: "123 Street",
-      address2: "Near Park",
-      landmark: "Big Tower",
-      city: "Mumbai",
-      state: "Maharashtra",
-      region: "West",
-      pincode: "400001",
-      spocName: "Arun",
-      spocContact: "9000000000",
-      spocManagerName: "Kiran",
-      spocManagerContact: "9111111111",
-      regionalManagerContact: "9222222222",
-    },
-  };
-
-  const handleSearch = () => {
-    if (!mobile) {
-      setMobileError("Mobile number is required");
-      setShowForm(false);
-      return;
-    }
-    if (!/^\d{10}$/.test(mobile)) {
+  const handleSearch = async () => {
+    if (!/^[0-9]{10}$/.test(mobile)) {
       setMobileError("Enter a valid 10-digit mobile number");
-      setShowForm(false);
       return;
     }
 
-    setMobileError("");
-    const data = mockUserData[mobile];
-    if (data) {
-      setFormData(data);
-      setShowForm(true);
-    } else {
-      showToast("error", "No architect found for this mobile number");
-      setShowForm(false);
+    setIsSearching(true);
+    try {
+      const res = await API.searchArchitect(mobile);
+      const architect = res?.data?.data?.[0] || res?.data?.data || res?.data;
+
+      if (architect && typeof architect === "object" && Object.keys(architect).length > 0) {
+        setFormData({
+          architectId: safeString(architect.architectId),
+          firstName: safeString(architect.firstName),
+          lastName: safeString(architect.lastName),
+          firmName: safeString(architect.firmName),
+          gender: safeString(architect.gender),
+          contactNumber: safeString(architect.contactNumber),
+          email: safeString(architect.email),
+          address1: safeString(architect.address1),
+          address2: safeString(architect.address2),
+          landmark: safeString(architect.landmark),
+          city: safeString(architect.city),
+          state: safeString(architect.state),
+          region: safeString(architect.region),
+          pincode: safeString(architect.pincode),
+          spocName: safeString(architect.spocName),
+          spocMobile: safeString(architect.spocMobile),
+          spocManagerName: safeString(architect.spocManagerName),
+          spocManagerMobile: safeString(architect.spocManagerMobile),
+          regionalManagerMobile: safeString(architect.regionalManagerMobile),
+        });
+        setDataFound(true);
+        setMobileError("");
+      } else {
+        showToast("error", "User not found for this mobile number.");
+        setDataFound(false);
+        
+      }
+    } catch {
+      showToast("error", "Something went wrong while searching architect");
+      setDataFound(null);
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleChange = useCallback(
+    (key: keyof ArchitectFormData, value: string) => {
+      setFormData((prev) => ({ ...prev, [key]: value }));
+      if (formErrors[key]) {
+        setFormErrors((prev) => ({ ...prev, [key]: "" }));
+      }
+    },
+    [formErrors]
+  );
 
-  const handleUpdate = () => {
-    console.log("Updated architect data:", formData);
-    showToast("success", "Data updated successfully!");
+  const handleUpdate = async () => {
+    try {
+      setIsUpdating(true);
+      await API.updateArchitect({
+        architectId: formData.architectId,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        firmName: formData.firmName,
+        gender: formData.gender,
+        mobile: formData.contactNumber,
+        email: formData.email,
+        address1: formData.address1,
+        address2: formData.address2,
+        landmark: formData.landmark,
+        city: formData.city,
+        state: formData.state,
+        region: formData.region,
+        pincode: formData.pincode,
+        spocName: formData.spocName,
+        spocMobile: formData.spocMobile,
+        spocManagerName: formData.spocManagerName,
+        spocManagerMobile: formData.spocManagerMobile,
+        regionalManagerMobile: formData.regionalManagerMobile,
+      });
+      showToast("success", "Architect data updated successfully!");
+    } catch {
+      showToast("error", "Failed to update architect data. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <Container maxWidth="md">
-      <Box sx={{ py: 8 }}>
-        <Typography sx={{ mb: 3, fontWeight:"bold", display:"flex", gap:1}} variant="h4" gutterBottom>
-          <SectionAnim type="architect" shouldPlay={true} /> Architect
+      <Box sx={{ py: 4 }}>
+        <Typography variant="h4" sx={{ mb: 3, fontWeight: "bold", display: "flex", alignItems: "center", gap: 1 }}>
+          <SectionAnim type="architect" shouldPlay={true} /> Architect Management
         </Typography>
 
-        {/* Mobile Search */}
-        <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <Grid item xs={8}>
-            <TextField
-              label="Mobile Number"
-              variant="outlined"
-              size="small"
-              fullWidth
-              value={mobile}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (/^\d*$/.test(val)) setMobile(val);
-              }}
-              error={Boolean(mobileError)}
-              helperText={mobileError}
-              inputProps={{ maxLength: 10 }}
-              type="tel"
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleSearch}
-            >
-              Search
-            </Button>
-          </Grid>
-        </Grid>
-
-        <Typography
-          sx={{
-            background: "lightgray",
-            px: 2,
-            py: 1,
-            mb: 2,
-            fontWeight: "bold",
-          }}
-          variant="h6"
-          gutterBottom
-        >
-          Overview User Data
-        </Typography>
-
-        {showForm && (
+        <Paper elevation={2} sx={{ p: 5, mb: 3 }}>
+          <Typography variant="h5" sx={{mb:2, fontWeight:"bold"}} gutterBottom>
+            Search Architect
+          </Typography>
           <Grid container spacing={2}>
-            {/* Basic Details */}
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={8}>
               <TextField
-                label="First Name"
+                label="Mobile Number"
                 fullWidth
-                variant="outlined"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                error={Boolean(mobileError)}
+                helperText={mobileError}
                 size="small"
-                value={formData.firstName}
-                onChange={(e) => handleChange("firstName", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Last Name"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.lastName}
-                onChange={(e) => handleChange("lastName", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Firm Name"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.firmName}
-                onChange={(e) => handleChange("firmName", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Gender"
-                select
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.gender}
-                onChange={(e) => handleChange("gender", e.target.value)}
-              >
-                <MenuItem value="M">Male</MenuItem>
-                <MenuItem value="F">Female</MenuItem>
-                <MenuItem value="O">Other</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Contact Number"
                 type="tel"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.contactNumber}
-                onChange={(e) => handleChange("contactNumber", e.target.value)}
               />
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Email ID"
-                type="email"
+            <Grid item xs={12} sm={4}>
+              <Button
                 fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-              />
-            </Grid>
-
-            {/* Address Section */}
-            <Grid item xs={12}>
-              <TextField
-                label="Address - Line 1"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.address1}
-                onChange={(e) => handleChange("address1", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Address - Line 2"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.address2}
-                onChange={(e) => handleChange("address2", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Landmark"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.landmark}
-                onChange={(e) => handleChange("landmark", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="City"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.city}
-                onChange={(e) => handleChange("city", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="State"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.state}
-                onChange={(e) => handleChange("state", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Region"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.region}
-                onChange={(e) => handleChange("region", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Pincode"
-                type="number"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.pincode}
-                onChange={(e) => handleChange("pincode", e.target.value)}
-              />
-            </Grid>
-
-            {/* SPOC Section */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="SPOC Name"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.spocName}
-                onChange={(e) => handleChange("spocName", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="SPOC Contact No."
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.spocContact}
-                onChange={(e) => handleChange("spocContact", e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="SPOC Manager's Name"
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.spocManagerName}
-                onChange={(e) =>
-                  handleChange("spocManagerName", e.target.value)
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="SPOC Manager's Contact No."
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.spocManagerContact}
-                onChange={(e) =>
-                  handleChange("spocManagerContact", e.target.value)
-                }
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Regional Manager Contact No."
-                fullWidth
-                variant="outlined"
-                size="small"
-                value={formData.regionalManagerContact}
-                onChange={(e) =>
-                  handleChange("regionalManagerContact", e.target.value)
-                }
-              />
-            </Grid>
-
-            {/* Update Button */}
-            <Grid item xs={12}>
-              <Box textAlign="center" mt={3}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdate}
-                  size="large"
-                >
-                  Update
-                </Button>
-              </Box>
+                variant="contained"
+                color="secondary"
+                onClick={handleSearch}
+                disabled={isSearching || mobile.length !== 10}
+                startIcon={isSearching ? <CircularProgress size={20} /> : null}
+                sx={{ height: 40 }}
+              >
+                {isSearching ? "Searching..." : "Search"}
+              </Button>
             </Grid>
           </Grid>
+        </Paper>
+
+        <Paper elevation={2} sx={{ p: 1, mb: 1, background:"lightgray" }}>
+          <Typography variant="h5" sx={{mb:0, fontWeight:"bold"}} gutterBottom>Overview Architect Details</Typography>
+        </Paper>
+
+        {!dataFound && (
+          <Paper elevation={2} sx={{ p: 3 }}>
+            <Typography color="error" fontWeight="bold">
+              User not found for this mobile number.
+            </Typography>
+          </Paper>
+        )}
+
+        {dataFound === true && (
+          <Paper elevation={2} sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{mb:2, fontWeight:"bold"}}gutterBottom>Architect Details</Typography>
+            <Grid container spacing={2}>
+              {FORM_FIELDS.map(({ label, key, type = "text", select = false, options = [], fullWidth = false }) => (
+                <Grid item xs={12} sm={fullWidth ? 12 : 6} key={key}>
+                  {select ? (
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label={label}
+                      value={formData[key as keyof ArchitectFormData]}
+                      onChange={(e) => handleChange(key as keyof ArchitectFormData, e.target.value)}
+                    >
+                      <MenuItem value=""><em>Select {label}</em></MenuItem>
+                      {options.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                      ))}
+                    </TextField>
+                  ) : (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={label}
+                      type={type}
+                      value={formData[key as keyof ArchitectFormData]}
+                      onChange={(e) => handleChange(key as keyof ArchitectFormData, e.target.value)}
+                    />
+                  )}
+                </Grid>
+              ))}
+              <Grid item xs={12}>
+                <Box textAlign="center" mt={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleUpdate}
+                    disabled={isUpdating}
+                    startIcon={isUpdating ? <CircularProgress size={20} /> : null}
+                  >
+                    {isUpdating ? "Updating..." : "Update Architect"}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
         )}
       </Box>
     </Container>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BaseResponse,
@@ -17,7 +18,7 @@ import {
 } from "./utils";
 
 class APIS {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   private showLoader = (loaderTitle?: string | undefined) => {};
   private hideLoader = (loaderTitle?: string | undefined) => {};
   private static instance: APIS | null = null;
@@ -40,7 +41,7 @@ class APIS {
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
-    return unauthorisedApiCall("/admin/login", { email, password })
+    return unauthorisedApiCall("/approval/login", { email, password })
       .then(fetchHandler)
       .then(responseHelper)
       .catch(defaultCatch)
@@ -63,6 +64,50 @@ class APIS {
       .catch(defaultCatch)
       .finally();
   }
+// Search salers Details by Mobile Number
+async searchSales(mobile: string): Promise<GetAnyDataResponse> {
+  return authorisedApiCall("/approval/searchSales", { mobile })
+    .then(fetchHandler)
+    .then(responseHelper)
+    .catch(defaultCatch);
+}
+
+
+ // Search Architects Details by Mobile Number
+async searchArchitect(mobile: string): Promise<GetAnyDataResponse> {
+  return authorisedApiCall("/approval/searchArchitect", { mobile })
+    .then(fetchHandler)
+    .then(responseHelper)
+    .catch(defaultCatch);
+}
+ // update Architect 
+async updateArchitect(data: {
+  architectId: string;
+  firstName: string;
+  lastName: string;
+  firmName: string;
+  gender: string;
+  mobile: string;
+  email: string;
+  address1: string;
+  address2: string;
+  landmark: string;
+  city: string;
+  state: string;
+  region: string;
+  pincode: string;
+  spocName: string;
+  spocMobile: string;
+  spocManagerName: string;
+  spocManagerMobile: string;
+  regionalManagerMobile: string;
+}): Promise<any> {
+  return authorisedApiCall("/approval/updateArchitect", data)
+    .then(fetchHandler)
+    .then(responseHelper)
+    .catch(defaultCatch);
+}
+
 
   async getPendingData(): Promise<GetAnyDataResponse> {
     return authorisedApiCall("/admin/getPendingUsers", {}, "GET")
