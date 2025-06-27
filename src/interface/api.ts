@@ -12,7 +12,7 @@ export interface GenericRecord {
 }
 
 // For UI-specific data with render functions
-export interface UIGenericRecord extends GenericRecord {
+export interface UIGenericRecord {
   [key: string]: string | number | boolean | null | undefined | ((props: any) => JSX.Element);
 }
 

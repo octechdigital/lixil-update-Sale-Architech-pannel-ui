@@ -102,7 +102,7 @@ const Architect = () => {
     value !== undefined && value !== null ? String(value) : "";
 
   const handleSearch = async () => {
-    if (!/^[0-9]{10}$/.test(mobile)) {
+    if (!/^\d{10}$/.test(mobile)){
       setMobileError("Enter a valid 10-digit mobile number");
       return;
     }
@@ -208,10 +208,14 @@ const Architect = () => {
                 label="Mobile Number"
                 fullWidth
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*$/.test(val)) setMobile(val);
+              }}
                 error={Boolean(mobileError)}
                 helperText={mobileError}
                 size="small"
+                inputProps={{ maxLength: 10 }}
                 type="tel"
               />
             </Grid>

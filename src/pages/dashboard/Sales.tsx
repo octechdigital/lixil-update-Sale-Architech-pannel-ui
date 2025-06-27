@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Paper,
+  CircularProgress
 } from "@mui/material";
 import { showToast } from "../../lib/utils";
 import SectionAnim from "../../assets/lottie/SectionAnim";
@@ -20,6 +21,7 @@ const Sales = () => {
     name: "",
     contactNumber: "",
   });
+  const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async () => {
     if (!/^\d{10}$/.test(mobile)) {
@@ -29,6 +31,7 @@ const Sales = () => {
     }
 
     setMobileError("");
+    setIsSearching(true);
 
     try {
       const res = await API.searchSales(mobile);
@@ -49,6 +52,8 @@ const Sales = () => {
       showToast("error", "Something went wrong while searching");
       setFormData({ name: "", contactNumber: "" });
       setShowForm(false);
+    }finally{
+      setIsSearching(false);
     }
   };
 
@@ -94,13 +99,16 @@ const Sales = () => {
           </Grid>
           <Grid item xs={4}>
             <Button
-              fullWidth
-              variant="contained"
-              color="secondary"
-              onClick={handleSearch}
-            >
-              Search
-            </Button>
+                            fullWidth
+                            variant="contained"
+                            color="secondary"
+                            onClick={handleSearch}
+                            disabled={isSearching || mobile.length !== 10}
+                            startIcon={isSearching ? <CircularProgress size={20} /> : null}
+                            sx={{ height: 40 }}
+                          >
+                            {isSearching ? "Searching..." : "Search"}
+                          </Button>
           </Grid>
         </Grid>
 </Paper>
